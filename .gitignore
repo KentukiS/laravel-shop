@@ -1,0 +1,85 @@
+cat > .gitignore <<'EOF'
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+api/.env
+api/.env.*
+!api/.env.example
+
+web/.env
+web/.env.*
+web/.env.local
+web/.env.*.local
+!web/.env.example
+
+# Dependencies
+vendor/
+node_modules/
+
+api/vendor/
+web/node_modules/
+
+# Laravel storage / cache
+api/storage/*.key
+api/storage/logs/*
+!api/storage/logs/.gitignore
+
+api/storage/framework/cache/*
+!api/storage/framework/cache/.gitignore
+
+api/storage/framework/cache/data/*
+!api/storage/framework/cache/data/.gitignore
+
+api/storage/framework/sessions/*
+!api/storage/framework/sessions/.gitignore
+
+api/storage/framework/views/*
+!api/storage/framework/views/.gitignore
+
+api/bootstrap/cache/*.php
+
+# Laravel generated files
+api/public/storage
+api/.phpunit.cache
+api/.pint.cache
+api/.phpactor.json
+api/auth.json
+
+# Next.js build output
+web/.next/
+web/out/
+web/build/
+web/dist/
+
+# Next.js / Vercel
+web/.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Testing / coverage
+coverage/
+web/coverage/
+api/coverage/
+
+# Docker / local runtime
+docker-compose.override.yml
+
+# Temporary files
+*.tmp
+*.temp
+EOF
