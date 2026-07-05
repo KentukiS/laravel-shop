@@ -1,58 +1,144 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# WordPress Draft Post Creator
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This is a small Laravel command that creates a draft post on a WordPress site using a WordPress username and password.
 
-## About Laravel
+The task requires three input parameters:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* WordPress site URL
+* WordPress username
+* WordPress password
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Because the task explicitly requires a username/password pair, the implementation uses the built-in WordPress XML-RPC API method `wp.newPost`.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Main files
 
-## Learning Laravel
+The main implementation is here:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```text
+app/Console/Commands/CreateWordPressDraftPost.php
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Tests are here:
 
-## Contributing
+```text
+tests/Feature/CreateWordPressDraftPostTest.php
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## How it works
 
-## Code of Conduct
+The command sends a POST request to the WordPress XML-RPC endpoint:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```text
+/xmlrpc.php
+```
 
-## Security Vulnerabilities
+It calls the XML-RPC method:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```text
+wp.newPost
+```
 
-## License
+The created post uses:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```text
+post_type: post
+post_status: draft
+```
+
+If the request is successful, the command prints the created post ID.
+
+Example successful output:
+
+```text
+SUCCESS: Draft post created. ID: 123
+```
+
+## Usage
+
+Run the command with Artisan:
+
+```bash
+php artisan wp:create-draft "https://example.com" "wp_username" "wp_password"
+```
+
+With Laravel Sail:
+
+```bash
+./vendor/bin/sail artisan wp:create-draft "https://example.com" "wp_username" "wp_password"
+```
+
+Optional title and content:
+
+```bash
+php artisan wp:create-draft "https://example.com" "wp_username" "wp_password" \
+  --title="Test Draft Post" \
+  --content="This post was created from Laravel."
+```
+
+## Error handling
+
+The command handles:
+
+* unavailable site
+* request timeout
+* invalid username/password
+* HTTP errors
+* invalid XML response
+* missing post ID in the response
+
+Example errors:
+
+```text
+ERROR: Site unavailable or request timeout after 10 seconds.
+```
+
+```text
+ERROR XML-RPC 403: Incorrect username or password.
+```
+
+```text
+ERROR HTTP 500: WordPress XML-RPC request failed.
+```
+
+## Testing
+
+A real WordPress site is not required for testing.
+
+The command is covered by Laravel feature tests using `Http::fake()`.
+The tests mock WordPress XML-RPC responses and check successful and failed scenarios.
+
+Run tests:
+
+```bash
+php artisan test --filter=CreateWordPressDraftPostTest
+```
+
+With Laravel Sail:
+
+```bash
+./vendor/bin/sail artisan test --filter=CreateWordPressDraftPostTest
+```
+
+Tested scenarios:
+
+* successful draft creation
+* invalid username/password
+* unavailable site or timeout
+* HTTP error response
+
+Example test result:
+
+```text
+PASS  Tests\Feature\CreateWordPressDraftPostTest
+✓ it creates wordpress draft successfully
+✓ it handles invalid username or password
+✓ it handles unavailable site or timeout
+✓ it handles http error
+```
+
+## Notes
+
+A local or real WordPress site is not required for this task.
+The tests mock WordPress XML-RPC responses, so the request structure, response parsing, and error handling can be reviewed without deploying WordPress.
+
+On a real WordPress website, `/xmlrpc.php` must be enabled and the provided user must have permission to create posts.
